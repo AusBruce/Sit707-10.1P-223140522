@@ -1,0 +1,57 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: '11'
+
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+
+    - name: Run tests with Maven
+      run: mvn test
+
+    - name: Send email notification on failure
+      if: failure()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: Build Failure Notification
+        body: The build has failed. Please check the details in the GitHub Actions logs.
+        to: wangyuheng086@gmail.com
+        from: ${{ secrets.EMAIL_USERNAME }}
+        secure: true
+
+    - name: Send email notification on success
+      if: success()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: Build Success Notification
+        body: The build has succeeded. Please check the details in the GitHub Actions logs.
+        to: wangyuheng086@gmail.com
+        from: ${{ secrets.EMAIL_USERNAME }}
+        secure: true
